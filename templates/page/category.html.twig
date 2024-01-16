@@ -8,9 +8,23 @@
 
 	<h1>{{ category.name }}</h1>
 
-	<a href="{{ path('category_edit', {'category': category.name}) }}">
-		Modifier
-	</a>
+	<ul>
+		<li>
+			<a href={{ path('category_new') }}>
+				Ajouter
+			</a>
+		</li>
+		<li>
+			<a href={{ path('category_edit', {'category': category.name} ) }}>
+				Modifier
+			</a>
+		</li>
+		<li>
+			<a href={{ path('category_edit', {'category': category.name} ) }}>
+				Supprimer
+			</a>
+		</li>
+	</ul>
 	{{ dump(posts) }}
 
 {% endblock %}

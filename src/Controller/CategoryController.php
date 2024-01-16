@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\Category;
 use App\Repository\CategoryRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -32,4 +34,25 @@ class CategoryController extends AbstractController
             'category' => $category,
         ]);
     }
+
+    // Route to add a new category
+    #[Route('/new-category', name: 'category_new')]
+    public function new(
+        // Inject the request object to get the data from the form
+        Request $request,
+        // Add the EntityManagerInterface to save the category
+        EntityManagerInterface $em,
+    ): Response
+    {
+        // TODO Add the form here
+
+        // TODO Add the form proccess here
+
+        // Return the view
+        return $this->render('category/new.html.twig', [
+            // Pass the form to the view
+        ]);
+    }
+
+    // Route to delete a category
 }
