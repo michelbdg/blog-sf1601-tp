@@ -44,8 +44,8 @@ class PageController extends AbstractController
         ]);
         // Return the view
         return $this->render('page/category.html.twig', [
-            // Pass the category name to the view
-            'title' => $category->getName(),
+            // Pass the category object to the view
+            'category' => $category,
             // Pass all posts in the category to the view
             'posts' => $postRepository->findBy(
                 [
