@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 class CategoryController extends AbstractController
 {
@@ -17,22 +18,36 @@ class CategoryController extends AbstractController
         Request $request,
         CategoryRepository $categoryRepository,
         EntityManagerInterface $em // To save the category edited
-    ): Response
-    {
+    ): Response {
         $category = $categoryRepository->findOneBy([
             'name' => $request->get('category')
         ]);
 
         // Edit form + proccess
-        $form = $this->createForm(CategoryType::class, $category);
+        $form = $this->createForm(CategoryType::class);
         $form->handleRequest($request);
 
-        if($form->isSubmitted() && $form->isValid()) {
-           $category->setName($form->get('name')->getData());
-           $em->persist($category);
-           $em->flush(); 
-            
-           // Redirect to the category page
+        if ($form->isSubmitted() && $form->isValid()) {
+            if ($form->get('image')->getData()) {
+                $imageFile = $form->get('image')->getData();
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $newFilename = $originalFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
+                try {
+                    $imageFile->move(
+                        $this->getParameter('uploads_directory'),
+                        $newFilename
+                    );
+                    $category->setImage($newFilename);
+                } catch (FileException $e) {
+                    $this->addFlash('danger', 'Une erreur est survenue lors de l\'upload de votre image');
+                }
+            }
+
+            $category->setName($form->get('name')->getData());
+            $em->persist($category);
+            $em->flush();
+
+            // Redirect to the category page
             return $this->redirectToRoute('category', [
                 'category' => $category->getName()
             ]);
@@ -54,8 +69,7 @@ class CategoryController extends AbstractController
         Request $request,
         // Add the EntityManagerInterface to save the category
         EntityManagerInterface $em,
-    ): Response
-    {
+    ): Response {
         // TODO Add the form here
 
         // TODO Add the form proccess here
