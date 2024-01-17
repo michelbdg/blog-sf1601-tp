@@ -24,7 +24,7 @@ class PageController extends AbstractController
         $posts = $paginator->paginate(
             $postRepository->findAll(), // Request
             $request->query->getInt('page', 1), // Page number
-            10 // Limit per page
+            9 // Limit per page
         );
         return $this->render('page/home.html.twig', [
             'posts' => $posts,
