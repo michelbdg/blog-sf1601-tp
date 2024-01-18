@@ -6,6 +6,7 @@ use App\Form\PostType;
 use App\Repository\PostRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -17,14 +18,13 @@ class PostController extends AbstractController
     // Route 
     #[Route('/post/{slug}/edit', name: 'post_edit')]
     public function edit(
-        $slug,
         Request $request,
         PostRepository $postRepository,
         EntityManagerInterface $em
     ): Response
     {
-        $post = $postRepository->findAll([
-            'name' => $request->get('post')
+        $post = $postRepository->findOneBy([
+            'slug' => $request->get('slug')
         ]);
 
 
@@ -33,14 +33,32 @@ class PostController extends AbstractController
         $form->handleRequest($request);
 
         if($form->isSubmitted() && $form->isValid()){
-            $em->$this->getDoctrine()->getManager();
-            $em->persist($slug);
+            if ($form->get('image')->getData()) {
+                $imageFile = $form->get('image')->getData();
+                $originalFilename = pathinfo($imageFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $newFilename = $originalFilename . '-' . uniqid() . '.' . $imageFile->guessExtension();
+                try {
+                    $imageFile->move(
+                        $this->getParameter('uploads_directory'),
+                        $newFilename
+                    );
+                    $post->setImage($newFilename);
+                } catch (FileException $e) {
+                    $this->addFlash('danger', 'Une erreur est survenue lors de l\'upload de votre image');
+                }
+            }
+
+
+
+            $em->$this->get()->getData();
+            $em->persist($post);
             $em->flush();
         };
         
 
         return $this->render('post/edit.html.twig', [
-            'slug' => $slug,
+            'post' => $post,
+            'editedForm' => $form,
         ]);
     }
 }
